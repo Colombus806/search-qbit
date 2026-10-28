@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SearchQBit" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <color name="ic_launcher_background">#00506E</color>
+</resources>
