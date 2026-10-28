@@ -125,8 +125,17 @@ class OpenSubtitles(
         DownloadedSubtitle(file, answer.remaining, answer.resetTime)
     }
 
-    private fun search(query: SubtitleQuery): List<Subtitle> =
-        call(apiRequest(searchUrl(api, query)).build()) { parseSearchResponse(it.string()) }
+    /** The API does not sort across its pages of 50: every page is read, then sorted here. */
+    private fun search(query: SubtitleQuery): List<Subtitle> {
+        val results = mutableListOf<Subtitle>()
+        var page = 1
+        do {
+            val answer = call(apiRequest(searchUrl(api, query, page)).build()) { parseSearchPage(it.string()) }
+            results += answer.subtitles
+            page++
+        } while (page <= answer.totalPages && page <= MAX_PAGES)
+        return results.sortedByDescending { it.downloads }
+    }
 
     private fun requestDownload(fileId: Long, session: Session?): DownloadAnswer {
         val body = buildJsonObject { put("file_id", fileId) }.toString().toRequestBody(JSON)
@@ -195,17 +204,22 @@ class OpenSubtitles(
     companion object {
         val DEFAULT_API = "https://api.opensubtitles.com/api/v1/".toHttpUrl()
         private val JSON = "application/json".toMediaType()
+
+        /** 500 subtitles: far more than any movie or episode has in English. */
+        private const val MAX_PAGES = 10
     }
 }
 
-/** Search URL with parameters sorted and in lowercase, as the API asks (otherwise it redirects). */
-internal fun searchUrl(api: HttpUrl, query: SubtitleQuery): HttpUrl {
+/**
+ * Search URL with parameters sorted, in lowercase and without default values, as the API asks
+ * (otherwise it redirects). No server-side order: it is not global, and the API asks to avoid it.
+ */
+internal fun searchUrl(api: HttpUrl, query: SubtitleQuery, page: Int = 1): HttpUrl {
     val params = sortedMapOf(
         "languages" to "en",
-        "order_by" to "download_count",
-        "order_direction" to "desc",
         "query" to query.title.lowercase(Locale.ROOT),
     )
+    if (page > 1) params["page"] = page.toString()
     query.year?.let { params["year"] = it.toString() }
     if (query.season != null) {
         params["season_number"] = query.season.toString()
@@ -248,10 +262,12 @@ internal fun parseSubtitleQuery(text: String): SubtitleQuery {
 
 private fun String.trimSeparators() = trim(' ', '-', ':', ',', '(', '[')
 
-internal fun parseSearchResponse(json: String): List<Subtitle> =
-    appJson.decodeFromString<SearchAnswer>(json).data
-        .mapNotNull { it.attributes.toSubtitle() }
-        .sortedByDescending { it.downloads }
+internal class SearchPage(val subtitles: List<Subtitle>, val totalPages: Int)
+
+internal fun parseSearchPage(json: String): SearchPage {
+    val answer = appJson.decodeFromString<SearchAnswer>(json)
+    return SearchPage(answer.data.mapNotNull { it.attributes.toSubtitle() }, answer.totalPages)
+}
 
 private fun SubtitleAttributes.toSubtitle(): Subtitle? {
     if (machineTranslated) return null
@@ -277,12 +293,16 @@ private fun FeatureDetails.label(): String = buildString {
         if (title.isNotBlank() && !title.equals(parentTitle, ignoreCase = true)) append(" · ").append(title)
     } else {
         append(title.ifBlank { movieName })
-        if (year > 0) append(" ($year)")
     }
+    // Tells apart remakes and shows sharing a name, e.g. The Office (2005) and (2002).
+    if (year > 0) append(" ($year)")
 }
 
 @Serializable
-private class SearchAnswer(val data: List<SearchItem> = emptyList())
+private class SearchAnswer(
+    val data: List<SearchItem> = emptyList(),
+    @SerialName("total_pages") val totalPages: Int = 1,
+)
 
 @Serializable
 private class SearchItem(val attributes: SubtitleAttributes = SubtitleAttributes())

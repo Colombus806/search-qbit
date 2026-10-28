@@ -42,14 +42,13 @@ class SubtitleQueryTest {
     fun `search URL has sorted lowercase parameters`() {
         val api = "https://api.example.com/api/v1/".toHttpUrl()
         assertEquals(
-            "https://api.example.com/api/v1/subtitles?languages=en&order_by=download_count&order_direction=desc" +
-                "&query=inception&year=2010",
+            "https://api.example.com/api/v1/subtitles?languages=en&query=inception&year=2010",
             searchUrl(api, SubtitleQuery("Inception", year = 2010)).toString(),
         )
         assertEquals(
-            "https://api.example.com/api/v1/subtitles?episode_number=3&languages=en&order_by=download_count" +
-                "&order_direction=desc&query=the%20office&season_number=2&type=episode",
-            searchUrl(api, SubtitleQuery("The Office", season = 2, episode = 3)).toString(),
+            "https://api.example.com/api/v1/subtitles?episode_number=3&languages=en&page=2&query=the%20office" +
+                "&season_number=2&type=episode",
+            searchUrl(api, SubtitleQuery("The Office", season = 2, episode = 3), page = 2).toString(),
         )
     }
 }

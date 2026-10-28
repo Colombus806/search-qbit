@@ -49,7 +49,7 @@ class OpenSubtitlesTest {
         assertEquals("inception.srt", results[0].release)
         assertEquals("Inception (2010)", results[0].feature)
         assertTrue(results[0].hearingImpaired)
-        assertEquals("The Office S02E12 · The Injury", results[2].feature)
+        assertEquals("The Office S02E12 · The Injury (2006)", results[2].feature)
         val request = server.takeRequest()
         assertEquals("key123", request.headers["Api-Key"])
         assertEquals("SearchQBit vTest", request.headers["User-Agent"])
@@ -57,6 +57,19 @@ class OpenSubtitlesTest {
         assertEquals("inception", request.url.queryParameter("query"))
         assertEquals("2010", request.url.queryParameter("year"))
         assertEquals("en", request.url.queryParameter("languages"))
+    }
+
+    @Test
+    fun `every page is read, then sorted by downloads`() = runBlocking {
+        configure()
+        // As the real API does: page 1 is not sorted, and the most downloaded can be on page 2.
+        server.enqueue(json(page(total = 2, 120 to 1, 30 to 2)))
+        server.enqueue(json(page(total = 2, 900 to 3)))
+
+        assertEquals(listOf(3L, 1L, 2L), client.search("Inception").map { it.fileId })
+
+        assertNull(server.takeRequest().url.queryParameter("page"))
+        assertEquals("2", server.takeRequest().url.queryParameter("page"))
     }
 
     @Test
@@ -167,6 +180,15 @@ class OpenSubtitlesTest {
     private fun downloadAnswer(path: String, remaining: Int) = """
         {"link": "${server.url(path)}", "file_name": "Inception.eng.srt", "requests": 1,
          "remaining": $remaining, "message": "", "reset_time": "23 hours and 59 minutes", "reset_time_utc": ""}
+    """
+
+    /** A search answer page; each pair is (download count, file id). */
+    private fun page(total: Int, vararg subtitles: Pair<Int, Long>) = """
+        {"total_pages": $total, "data": [${
+            subtitles.joinToString { (downloads, fileId) ->
+                """{"attributes": {"download_count": $downloads, "release": "r$fileId", "files": [{"file_id": $fileId}]}}"""
+            }
+        }]}
     """
 
     private fun loginAnswer(token: String) = """
