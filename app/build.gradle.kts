@@ -13,8 +13,8 @@ android {
         applicationId = "io.github.colombus806.searchqbit"
         minSdk = 26
         targetSdk = 37
-        versionCode = 3
-        versionName = "3.0"
+        versionCode = 4
+        versionName = "3.1"
 
         // Embedded Python: 64-bit ARM phones only (nearly every phone today).
         ndk {
@@ -33,6 +33,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -57,4 +58,5 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(libs.junit)
+    testImplementation(libs.okhttp.mockwebserver)
 }

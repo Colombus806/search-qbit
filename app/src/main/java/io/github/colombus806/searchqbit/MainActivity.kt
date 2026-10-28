@@ -24,10 +24,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.colombus806.searchqbit.ui.AppIcons
 import io.github.colombus806.searchqbit.ui.PluginsScreen
 import io.github.colombus806.searchqbit.ui.PluginsViewModel
 import io.github.colombus806.searchqbit.ui.SearchScreen
 import io.github.colombus806.searchqbit.ui.SearchViewModel
+import io.github.colombus806.searchqbit.ui.SubtitlesScreen
+import io.github.colombus806.searchqbit.ui.SubtitlesViewModel
 import io.github.colombus806.searchqbit.ui.theme.SearchQBitTheme
 
 class MainActivity : ComponentActivity() {
@@ -41,12 +44,14 @@ class MainActivity : ComponentActivity() {
 
 private enum class Tab(val label: String, val icon: ImageVector) {
     SEARCH("Search", Icons.Filled.Search),
+    SUBTITLES("Subtitles", AppIcons.Subtitles),
     PLUGINS("Plugins", Icons.AutoMirrored.Filled.List),
 }
 
 @Composable
 private fun MainScreen(container: AppContainer) {
     val searchViewModel = viewModel { SearchViewModel(container) }
+    val subtitlesViewModel = viewModel { SubtitlesViewModel(container) }
     val pluginsViewModel = viewModel { PluginsViewModel(container) }
     var tab by rememberSaveable { mutableStateOf(Tab.SEARCH) }
 
@@ -68,6 +73,7 @@ private fun MainScreen(container: AppContainer) {
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (tab) {
                 Tab.SEARCH -> SearchScreen(searchViewModel, onOpenPlugins = { tab = Tab.PLUGINS })
+                Tab.SUBTITLES -> SubtitlesScreen(subtitlesViewModel)
                 Tab.PLUGINS -> PluginsScreen(pluginsViewModel)
             }
         }

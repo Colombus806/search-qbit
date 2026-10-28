@@ -2,7 +2,7 @@
 
 Torrent search **directly on an Android phone**, without a PC, using the same `.py` plugins as
 qBittorrent's built-in search. One tap on a result opens it in **LibreTorrent**, which does the
-download.
+download. A second tab finds the most downloaded **English subtitles** on OpenSubtitles.
 
 The app ships no site and no plugin: you install your own and you are responsible for what you
 download.
@@ -29,6 +29,27 @@ download.
 
 A switch enables or disables each plugin; the bin removes it. The **Jackett** plugin cannot work here:
 it queries a Jackett server running on a PC.
+
+## Subtitles
+
+The **Subtitles** tab searches [opensubtitles.com](https://www.opensubtitles.com) for English
+subtitles, most downloaded first.
+
+- Type the movie, with its year if you like (`Inception 2010`), or the episode (`The Office S02E03`,
+  `Lost 4x12`). A pasted file name works too: `The.Office.US.S02E03.720p.WEB-DL` is understood.
+- Tap a subtitle: the app downloads it, unpacks it if it comes as a `.zip` or `.gz`, then opens the
+  Android file picker to choose the folder and the name (rename it like the video so the player loads
+  it on its own).
+- If you close the picker without saving, tap the subtitle again: it does not count as a new download.
+
+### API key and quota
+
+OpenSubtitles requires a free API key: create an account on opensubtitles.com, open **API consumers**
+in your profile menu, create a consumer and copy its key into the tab's settings (⚙). Searching only
+needs the key. Each download uses the daily quota: 5 per 24 hours without an account (only if "Allow
+anonymous downloads" is checked on the consumer), more when your username and password are entered in
+the settings. They are kept in the app's private storage, on the phone only. The number of downloads
+left appears after each download.
 
 ## Building the APK
 
@@ -68,6 +89,9 @@ ARM version of Python (every recent phone).
 | is not a valid search plugin | not a qBittorrent plugin, or its class is not named after the file |
 | This link returns a web page | link to the GitHub page instead of the raw file |
 | the site returned a web page instead of a .torrent file | protected `.torrent` link; try "Copy link" or another result |
+| OpenSubtitles refused the API key | key mistyped, or the consumer was deleted |
+| You have downloaded your allowed … subtitles | daily quota used up; enter your account in the settings for a larger one |
+| OpenSubtitles refused the sign-in | wrong username or password, or anonymous downloads not allowed on the key |
 
 ## Checks to run on the phone
 
@@ -78,6 +102,9 @@ ARM version of Python (every recent phone).
 5. Same on a ".torrent file" result (see a result's details).
 6. Disabling a plugin removes it from the plugin choice in the Search tab.
 7. After closing and reopening the app, plugins and their state are kept.
+8. Subtitles: with the API key entered, `Inception 2010` lists English subtitles, the most downloaded
+   on top; tapping one opens the file picker and the saved `.srt` opens in a video player.
+9. `The Office S02E03` only lists subtitles for that episode.
 
 ## Layout
 
@@ -89,8 +116,11 @@ app/src/main/java/io/github/colombus806/searchqbit/
   data/PythonEngine.kt        Kotlin <-> Python bridge (Chaquopy)
   data/PluginRepository.kt    installs, enables, updates and removes plugins
   data/TorrentFiles.kt        prepares the magnet link or .torrent file for LibreTorrent
+  data/OpenSubtitles.kt       opensubtitles.com client: query parsing, search, sign-in, download
+  data/SubtitleArchive.kt     unpacks .zip and .gz subtitles
   ui/SearchViewModel.kt       search, batched results, sorting and filtering
-  ui/SearchScreen.kt, ui/PluginsScreen.kt
+  ui/SubtitlesViewModel.kt    subtitle search, download, then save where the user chooses
+  ui/SearchScreen.kt, ui/SubtitlesScreen.kt, ui/PluginsScreen.kt
 app/src/test/                 Kotlin (JVM) and Python (plugin engine) tests
 .github/workflows/build.yml
 ```

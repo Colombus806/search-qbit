@@ -2,6 +2,7 @@ package io.github.colombus806.searchqbit.data
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.io.File
 
 const val ALL_CATEGORIES = "all"
 
@@ -47,4 +48,14 @@ data class SearchPlugin(
 val appJson = Json {
     ignoreUnknownKeys = true
     coerceInputValues = true
+}
+
+/** Writes through a temporary file, so a crash never leaves a half-written file. */
+internal fun File.writeTextAtomically(text: String) {
+    val temp = File("$path.tmp")
+    temp.writeText(text)
+    if (!temp.renameTo(this)) {
+        delete()
+        temp.renameTo(this)
+    }
 }

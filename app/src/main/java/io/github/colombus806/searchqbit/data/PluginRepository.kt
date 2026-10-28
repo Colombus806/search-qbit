@@ -146,12 +146,7 @@ class PluginRepository(
 
     private suspend fun save(plugins: List<SearchPlugin>) = withContext(Dispatchers.IO) {
         val sorted = plugins.sortedBy { it.fullName.ifBlank { it.name }.lowercase() }
-        val temp = File(stateFile.path + ".tmp")
-        temp.writeText(appJson.encodeToString(sorted))
-        if (!temp.renameTo(stateFile)) {
-            stateFile.delete()
-            temp.renameTo(stateFile)
-        }
+        stateFile.writeTextAtomically(appJson.encodeToString(sorted))
         _plugins.value = sorted
     }
 
