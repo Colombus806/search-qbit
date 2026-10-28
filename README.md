@@ -44,12 +44,17 @@ subtitles, most downloaded first.
 
 ### API key and quota
 
-OpenSubtitles requires a free API key: create an account on opensubtitles.com, open **API consumers**
-in your profile menu, create a consumer and copy its key into the tab's settings (⚙). Searching only
-needs the key. Each download uses the daily quota: 5 per 24 hours without an account (only if "Allow
-anonymous downloads" is checked on the consumer), more when your username and password are entered in
-the settings. They are kept in the app's private storage, on the phone only. The number of downloads
-left appears after each download.
+OpenSubtitles requires a free API key (see their
+[Getting started](https://opensubtitles.stoplight.io/docs/opensubtitles-api/e3750fd63a100-getting-started)
+page): create an account on opensubtitles.com (the current site, not .org), open **API consumers** in
+your profile menu, create a consumer and copy its key into the tab's settings (⚙). Searching only
+needs the key. Each download uses the daily quota, reset at midnight UTC: 5 without an account, 100
+while the consumer is set to "Under Development", 20 with a free account whose username and password
+are entered in the settings (kept in the app's private storage, on the phone only). The number of
+downloads left appears after each download.
+
+The key belongs to whoever builds the app: OpenSubtitles bans apps that make their users create keys,
+so a build shared with other people should have its own key built in rather than this setting.
 
 ## Building the APK
 
@@ -91,7 +96,7 @@ ARM version of Python (every recent phone).
 | the site returned a web page instead of a .torrent file | protected `.torrent` link; try "Copy link" or another result |
 | OpenSubtitles refused the API key | key mistyped, or the consumer was deleted |
 | You have downloaded your allowed … subtitles | daily quota used up; enter your account in the settings for a larger one |
-| OpenSubtitles refused the sign-in | wrong username or password, or anonymous downloads not allowed on the key |
+| OpenSubtitles refused the sign-in | wrong username or password, or downloads without login switched off on the key |
 
 ## Checks to run on the phone
 

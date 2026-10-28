@@ -68,7 +68,8 @@ class DownloadedSubtitle(val file: SubtitleFile, val remaining: Int?, val resetT
 
 /**
  * Client for the opensubtitles.com REST API. Searching only needs the API key; each download counts
- * against a daily quota: 5 per IP without an account, more when signed in.
+ * against a daily quota: 5 per IP without an account (100 while the key is "Under Development"),
+ * 20 for a free account.
  */
 class OpenSubtitles(
     private val http: OkHttpClient,
@@ -113,8 +114,8 @@ class OpenSubtitles(
         val answer = try {
             requestDownload(subtitle.fileId, signIn())
         } catch (e: SubtitleApiException) {
-            if (e.code != 401 || session == null) throw e
-            // The token has expired: sign in again, once.
+            if ((e.code != 401 && e.code != 500) || session == null) throw e
+            // The token lasts 24 hours; an expired one gets a 401, or a 500 "invalid". Sign in again, once.
             session = null
             requestDownload(subtitle.fileId, signIn())
         }

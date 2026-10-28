@@ -134,6 +134,19 @@ class OpenSubtitlesTest {
     }
 
     @Test
+    fun `a 500 invalid token also signs in again`() = runBlocking {
+        configure(username = "me", password = "secret")
+        server.enqueue(json(loginAnswer("token1")))
+        server.enqueue(json("""{"message": "invalid token"}""", code = 500))
+        server.enqueue(json(loginAnswer("token2")))
+        server.enqueue(json(downloadAnswer("/files/one", remaining = 19)))
+        server.enqueue(MockResponse(body = SRT.decodeToString()))
+
+        assertEquals(19, client.download(subtitle(11)).remaining)
+        assertEquals(5, server.requestCount)
+    }
+
+    @Test
     fun `a refused API key gets a clear message`() = runBlocking {
         configure()
         server.enqueue(json("""{"message": "You cannot consume this service"}""", code = 403))

@@ -246,8 +246,9 @@ private fun NoApiKey(onOpenSettings: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            "Subtitles come from opensubtitles.com, which requires a free API key: create an account there, " +
-                "then open \"API consumers\" in your profile and create one.",
+            "Subtitles come from opensubtitles.com (the current OpenSubtitles site, not .org), which " +
+                "requires a free API key: create an account there, then open \"API consumers\" in your " +
+                "profile and create a consumer, ticking \"Under Development\" for 100 downloads a day.",
             style = MaterialTheme.typography.bodyLarge,
         )
         OutlinedButton(onClick = { runCatching { uriHandler.openUri(API_KEYS_PAGE) } }) { Text("Open opensubtitles.com") }
@@ -284,9 +285,8 @@ private fun SettingsDialog(
                 )
                 Card {
                     Text(
-                        "Optional: without an account, OpenSubtitles allows 5 downloads per day, if \"Allow " +
-                            "anonymous downloads\" is checked on your API key. Signing in raises that limit. " +
-                            "Kept only on this phone.",
+                        "Optional: without an account, OpenSubtitles allows 5 downloads per day (100 while " +
+                            "the key is \"Under Development\"); a free account allows 20. Kept only on this phone.",
                         modifier = Modifier.padding(12.dp),
                         style = MaterialTheme.typography.bodySmall,
                     )
